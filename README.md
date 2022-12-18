@@ -2,9 +2,12 @@
 # technologies used
 
 1- graphene-django
+
 2- graphql-jwt
+
 3-django
-3-postgres
+
+4-postgres
 
 # idea
 
