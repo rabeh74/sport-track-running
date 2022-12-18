@@ -29,7 +29,7 @@ class Run(models.Model):
     )
 
     runtype = models.CharField(max_length=13, choices=RUNTYPES, default='UNCATEGORISED')
-    date = models.DateField(auto_now=False, auto_now_add=False)
+    date = models.DateField(auto_now=False, auto_now_add=True)
     units = models.CharField(max_length=2, choices=UNITS, default='KM')
 
     distance = models.DecimalField(max_digits=5, decimal_places=2, null=True)
@@ -41,7 +41,7 @@ class Run(models.Model):
 
 
     def __str__(self):
-        return f'Run: {self.date} - {self.time}, {self.distance} {self.units.lower()}'
+        return f'Run: {self.date} , {self.distance} {self.units.lower()}'
 
 
 class Race(models.Model):
