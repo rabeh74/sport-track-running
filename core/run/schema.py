@@ -247,8 +247,88 @@ class DeleteRun(relay.ClientIDMutation):
 
         return DeleteRun(ok=ok)
 
+class CreateRace(relay.ClientIDMutation):
 
 
+    class Input:
+        name = graphene.String(required=True)
+
+    race=graphene.Field(RaceType)
+
+    @classmethod
+    @login_required
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        name=kwargs["name"]
+        user = info.context.user
+        if Race.objects.filter(name=name , user=user).exists():
+            raise Exception(" there is an item with same name ")
+
+        kwargs["user"]=user
+
+        race=Race(**kwargs)
+        race.save()
+
+        return CreateRace(
+            race=race
+        )
+
+class UpdateRace(relay.ClientIDMutation):
+
+
+    class Input:
+        id = graphene.ID(required=True)
+        name = graphene.String(required=True)
+
+
+    race=graphene.Field(RaceType)
+
+    @classmethod
+    @login_required
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        id=kwargs.pop("id")
+        user = info.context.user
+        if not Race.objects.filter(id=id).exists():
+            raise Exception(" these item not available ")
+        race=Race.objects.get(id=id)
+        if user != race.user:
+            raise Exception(" not authorized ")
+
+        for name , value in kwargs.items():
+            setattr(race, name, value)
+        race.save()
+
+        return UpdateRace(
+            race=race
+        )
+
+class DeleteRace(relay.ClientIDMutation):
+
+
+    class Input:
+        id = graphene.ID(required=True)
+
+
+
+    ok=graphene.Boolean()
+
+    @classmethod
+    @login_required
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        id=kwargs.pop("id")
+        user = info.context.user
+        if not Race.objects.filter(id=id).exists():
+            raise Exception(" these item not available ")
+        race=Race.objects.get(id=id)
+        if user != race.user:
+            raise Exception(" not authorized ")
+
+
+        race.delete()
+        ok=True
+
+        return DeleteRace(
+            ok=ok
+        )
 
 
 class Muatation(graphene.ObjectType):
@@ -258,3 +338,6 @@ class Muatation(graphene.ObjectType):
     create_run=CreateRun.Field()
     update_run=UpdateRun.Field()
     delete_run = DeleteRun.Field()
+    create_race=CreateRace.Field()
+    update_race=UpdateRace.Field()
+    delete_race=DeleteRace.Field()

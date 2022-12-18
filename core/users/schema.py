@@ -30,7 +30,6 @@ class CreateUser(relay.ClientIDMutation):
 
         if not password == password_confirmation:
             raise Exception('Password confirmation does not match password')
-        print(email)
         user = get_user_model().objects.create_user(
             email=email,
             **kwargs,

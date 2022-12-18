@@ -46,7 +46,7 @@ class Run(models.Model):
 
 class Race(models.Model):
 
-    date = models.DateField(auto_now=False, auto_now_add=False)
+    date = models.DateField(auto_now=False, auto_now_add=True)
     name = models.CharField(max_length=300)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=False, on_delete=models.CASCADE)
 
