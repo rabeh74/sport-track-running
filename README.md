@@ -9,6 +9,8 @@
 
 4-postgres
 
+5- redis as cache
+
 # idea
 
  keep track of your running plans and log your actual runs.
