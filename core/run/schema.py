@@ -2,10 +2,12 @@ import graphene
 from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from graphene_django.filter import DjangoFilterConnectionField
-
+import time
 from users.schema import UserType
 from graphene import relay
 from run.models import Plan, Run, Race
+
+from django.core.cache import cache
 
 
 class PlanType(DjangoObjectType):
@@ -31,7 +33,7 @@ class RaceType(DjangoObjectType):
         interfaces = (relay.Node, )
 
 class Query(graphene.ObjectType):
-    plan = relay.Node.Field(PlanType)
+    plans = graphene.List(PlanType)
     runs = graphene.List(RunType)
     races = graphene.List(RaceType)
 
@@ -41,27 +43,77 @@ class Query(graphene.ObjectType):
 
     @login_required
     def resolve_plans(root, info):
-        return Plan.objects.all()
+        # check if objects in cache or not
+        plans_objects = cache.get('plans_objects')
+        if plans_objects is None:
+            # if not in cache hit db and add them to cace
+            plans_objects = Plan.objects.all()
+            cache.set('plans_objects', plans_objects)
+        end_time=time.time()
+
+
+        return plans_objects
 
     @login_required
     def resolve_runs(root, info):
-        return Run.objects.all()
+        # check if objects in cache or not
+        run_objects=cache.get("run_objects" , None)
+        print(run_objects)
+        if run_objects is None:
+            # if not in cache hit db and add them to cace
+            run_objects = Run.objects.all()
+            cache.set("run_objects" , run_objects)
+        return run_objects
 
     @login_required
     def resolve_races(root, info):
-        return Race.objects.all()
+        # check if objects in cache or not
+        race_objects=cache.get("race_objects" , None)
+        if race_objects is None:
+            # if not in cache hit db and add them to cace
+            race_objects = Race.objects.all()
+            cache.set("race_objects" , race_objects)
+        return race_objects
 
     @login_required
     def resolve_my_plans(root , info ):
-        return Plan.objects.filter(user=info.context.user)
+        # check if objects in cache or not
+        user=info.context.user
+        plans_objects = cache.get('plans_objects{}'.format(user))
+
+        if plans_objects is None:
+            # if not in cache hit db and add them to cace
+            plans_objects = Plan.objects.filter(user=user)
+            cache.set('plans_objects{}'.format(user), plans_objects)
+
+        return plans_objects
 
     @login_required
     def resolve_my_races(root , info ):
-        return Race.objects.filter(user=info.context.user)
+        # check if objects in cache or not
+        user=info.context.user
+        races_objects = cache.get('plans_objects{}'.format(user))
+
+        if races_objects is None:
+            # if not in cache hit db and add them to cace
+            races_objects = Race.objects.filter(user=user)
+            cache.set('races_objects{}'.format(user), races_objects)
+
+        return races_objects
 
     @login_required
     def resolve_my_runs(root , info ):
-        return Run.objects.filter(user=info.context.user)
+        # check if objects in cache or not
+        user=info.context.user
+        runs_objects = cache.get('runs_objects{}'.format(user))
+
+        if runs_objects is None:
+            # if not in cache hit db and add them to cace
+            runs_objects = Run.objects.filter(user=user)
+            cache.set('runs_objects{}'.format(user), runs_objects)
+
+        return runs_objects
+
 
 
 class CreatePlan(relay.ClientIDMutation):
